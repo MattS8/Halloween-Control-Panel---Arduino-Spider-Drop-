@@ -120,6 +120,9 @@ void handleDataRecieved(StreamData data) {
             if (key == "pin") {
                 SpiderDrop.pin = getPinValue(value);
             }
+            else if (key == "upLimitSwitchPin") {
+                SpiderDrop.upLimitSwitchPin = getPinValue(value);
+            }            
             else if (key == "dropMotorPin") {
                 SpiderDrop.dropMotorPin = getPinValue(value);
             }
@@ -132,6 +135,11 @@ void handleDataRecieved(StreamData data) {
             else if (key == "dropStopSwitchPin") {
                 SpiderDrop.dropStopSwitchpin = getPinValue(value);
             }
+            else if (key == "dropMotorDelay") {
+                temp = value.toInt();
+                if (temp >= 0)
+                    SpiderDrop.dropMotorDelay = temp;
+            }            
             else if (key == "currentPulseDelay") {
                 temp = value.toInt();
                 if (temp >= 0)
@@ -198,11 +206,13 @@ void writeToFirebase() {
       json.add("groupName", "Spider Droppers");
       json.add("pin", getPinValueFirebase(SpiderDrop.pin));
       json.add("dropMotorPin", getPinValueFirebase(SpiderDrop.dropMotorPin));
-      json.add("currentSesnePin", getPinValueFirebase(SpiderDrop.currentSensePin));
+      json.add("currentSensePin", getPinValueFirebase(SpiderDrop.currentSensePin));
       json.add("retractMotorPin", getPinValueFirebase(SpiderDrop.retractMotorPin));
       json.add("dropStopSwitchPin", getPinValueFirebase(SpiderDrop.dropStopSwitchpin));
       json.add("currentPulseDelay", SpiderDrop.currentPulseDelay);
       json.add("hangTime", SpiderDrop.hangTime);
+      json.add("upLimitSwitchPin", SpiderDrop.upLimitSwitchPin);
+      json.add("dropMotorDelay", SpiderDrop.dropMotorDelay);
       json.add("currentLimit", SpiderDrop.currentLimit);
       json.add("spiderState", 
         SpiderDrop.spiderState == DROPPED ? STATE_DROPPED 

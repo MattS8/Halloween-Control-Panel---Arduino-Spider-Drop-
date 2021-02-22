@@ -139,7 +139,7 @@ void loop()
     case RETRACTING:
         digitalWrite(SpiderDrop.dropMotorPin, HIGH);                        // Make sure drop motor is stopped
         currentVal = analogRead(SpiderDrop.currentSensePin);                // Get voltage drop across the motor load resistor
-        if (currentVal > SpiderDrop.currentLimit) {
+        if (digitalRead(SpiderDrop.upLimitSwitchPin) == LOW || currentVal > SpiderDrop.currentLimit) {
             stopRetractingSpider();
         }
         break;
@@ -157,7 +157,7 @@ void dropSpider()
 
     delay(CONST_DELAY);
     do {
-        delay(MOTOR_DELAY_INTERVAL);                                    // Time for motor to get off position switch
+        delay(SpiderDrop.dropMotorDelay);                                    // Time for motor to get off position switch
         dropSwitchState = digitalRead(SpiderDrop.dropStopSwitchpin);    // check the switch
     } while (dropSwitchState == HIGH);
 

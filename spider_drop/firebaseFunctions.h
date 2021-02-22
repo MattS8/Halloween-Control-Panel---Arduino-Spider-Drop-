@@ -23,6 +23,8 @@ typedef struct SpiderDropData {
     int dropStopSwitchpin;  // Pin number associated with sensing the position of the switch
     int currentPulseDelay;  // How long it takes for motor to start/stop pulse decay
     int currentLimit;       // How much current needs to be read before stopping the motor
+    int upLimitSwitchPin;   // Pin used as fail-safe to stop the retracting motor
+    int dropMotorDelay;     // Delay used to get the trigger off the release switch
 
 } SpiderDropData;
 
@@ -73,6 +75,8 @@ SpiderDropData SpiderDrop = {
     12,         //dropStopSwitchPin
     250,        //currentPulseDelay
     200,        //currentLimit
+    14,         //upLimitSwitchPin
+    1450        //dropMotorDelay
 };
 
 #endif

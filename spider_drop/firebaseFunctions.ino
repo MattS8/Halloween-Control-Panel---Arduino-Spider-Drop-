@@ -162,7 +162,7 @@ void handleDataRecieved(StreamData data) {
             else if (key == "stayDropped") {
                 Serial.print("stayDropped: ");
                 Serial.println(value);
-                SpiderDrop.stayDropped = value.toInt();
+                SpiderDrop.stayDropped = value == "true";
             }
             else if (key == "command") {
                 if (value == "DROP") {
@@ -235,7 +235,7 @@ void writeStateToFirebase() {
       ? STATE_DROPPED 
       : SpiderDrop.spiderState == RETRACTING 
         ? STATE_RETRACTING
-        : STATE_RETRACTED)
+        : STATE_RETRACTED);
 }
 
 void writeToFirebase() {

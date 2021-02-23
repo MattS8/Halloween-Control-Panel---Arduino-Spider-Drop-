@@ -11,7 +11,7 @@ const char* SpiderDropFilePath = "SpiderDrop.dat";
 
 #define MAX_HANG_TIME 15000
 
-#define CONST_DELAY 1000
+#define CONST_DELAY 1
 #define MOTOR_DELAY_INTERVAL 250
 
 #endif

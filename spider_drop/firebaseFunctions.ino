@@ -32,13 +32,19 @@ void setupFirebaseFunctions() {
     char* temp = (char* )malloc(50 * sizeof(char));
 
 	sprintf(temp, "/devices/%lu", ESP.getChipId());
-    DevicePath = String(temp);
+  DevicePath = String(temp);
 
-    delete[] temp;
+  sprintf(temp, "/state/%lu", ESP.getChipId());
+  StatePath = String(temp);
+
+  delete[] temp;
 
 #ifdef SETUP_FF_DEBUG
     Serial.print("DevicePath: ");
     Serial.println(DevicePath);
+
+    Serial.print("StatePath: ");
+    Serial.println(StatePath);
 #endif
 }
 
@@ -186,6 +192,28 @@ void handleDataRecieved(StreamData data) {
             newDataReceived = true;
         }
         writeLocalData();
+    } else if (data.dataType() == "string") {
+      String value = data.stringData();
+      if (value == "DROP") {
+          SpiderDrop.command = DROP;
+          newDataReceived = true;
+          writeLocalData();
+      } else if (value == "RETRACT") {
+          SpiderDrop.command = RETRACT;
+          newDataReceived = true;
+          writeLocalData();
+      } else if (value == "_none_") {
+          SpiderDrop.command = NONE;
+          newDataReceived = true;
+          writeLocalData();
+      } else {
+          SpiderDrop.command = NONE;
+          writeLocalData();
+#ifdef HAR_DEBUG
+          Serial.print("Unknown command: ");
+          Serial.println(value);
+#endif                  
+      }
     } else if (data.dataType() == "null") {
 #ifdef HAR_DEBUG
       Serial.println("No endpoint found on backend. Creating new device...");
@@ -194,33 +222,39 @@ void handleDataRecieved(StreamData data) {
         delay(3000);
     } else {
 #ifdef HAR_DEBUG
-    Serial.print("Stream returned non-JSON response: ");
+    Serial.print("Stream returned unknown response type: ");
     Serial.println(data.dataType());
 #endif
     }
 }
 
+void writeStateToFirebase() {
+  Firebase.setString(firebaseDataSEND,
+    StatePath,
+    SpiderDrop.spiderState == DROPPED 
+      ? STATE_DROPPED 
+      : SpiderDrop.spiderState == RETRACTING 
+        ? STATE_RETRACTING
+        : STATE_RETRACTED)
+}
+
 void writeToFirebase() {
-      FirebaseJson json;
-      json.add("name", String(ESP.getChipId()));
-      json.add("groupName", "Spider Droppers");
-      json.add("pin", getPinValueFirebase(SpiderDrop.pin));
-      json.add("dropMotorPin", getPinValueFirebase(SpiderDrop.dropMotorPin));
-      json.add("currentSensePin", getPinValueFirebase(SpiderDrop.currentSensePin));
-      json.add("retractMotorPin", getPinValueFirebase(SpiderDrop.retractMotorPin));
-      json.add("dropStopSwitchPin", getPinValueFirebase(SpiderDrop.dropStopSwitchpin));
-      json.add("currentPulseDelay", SpiderDrop.currentPulseDelay);
-      json.add("hangTime", SpiderDrop.hangTime);
-      json.add("upLimitSwitchPin", SpiderDrop.upLimitSwitchPin);
-      json.add("dropMotorDelay", SpiderDrop.dropMotorDelay);
-      json.add("currentLimit", SpiderDrop.currentLimit);
-      json.add("spiderState", 
-        SpiderDrop.spiderState == DROPPED ? STATE_DROPPED 
-        : SpiderDrop.spiderState == RETRACTING ? STATE_RETRACTING
-        : STATE_RETRACTED);
-      json.add("command", COMMAND_NONE);
-      json.add("stayDropped", SpiderDrop.stayDropped);
-      Firebase.set(firebaseDataSEND, DevicePath, json);
+  FirebaseJson json;
+  json.add("name", String(ESP.getChipId()));
+  json.add("groupName", "Spider Droppers");
+  json.add("pin", getPinValueFirebase(SpiderDrop.pin));
+  json.add("dropMotorPin", getPinValueFirebase(SpiderDrop.dropMotorPin));
+  json.add("currentSensePin", getPinValueFirebase(SpiderDrop.currentSensePin));
+  json.add("retractMotorPin", getPinValueFirebase(SpiderDrop.retractMotorPin));
+  json.add("dropStopSwitchPin", getPinValueFirebase(SpiderDrop.dropStopSwitchpin));
+  json.add("currentPulseDelay", SpiderDrop.currentPulseDelay);
+  json.add("hangTime", SpiderDrop.hangTime);
+  json.add("upLimitSwitchPin", SpiderDrop.upLimitSwitchPin);
+  json.add("dropMotorDelay", SpiderDrop.dropMotorDelay);
+  json.add("currentLimit", SpiderDrop.currentLimit);
+  json.add("command", COMMAND_NONE);
+  json.add("stayDropped", SpiderDrop.stayDropped);
+  Firebase.set(firebaseDataSEND, DevicePath, json);
 }
 
 /** -------- DEBUG FUNCTION -------- **/

@@ -155,19 +155,18 @@ void dropSpider()
     digitalWrite(SpiderDrop.retractMotorPin, HIGH);                     // Make sure motor is off
     digitalWrite(SpiderDrop.dropMotorPin, LOW);                         // Drop the spider  
 
-    delay(CONST_DELAY);
     do {
-        delay(SpiderDrop.dropMotorDelay);                                    // Time for motor to get off position switch
+        delay(CONST_DELAY);
         dropSwitchState = digitalRead(SpiderDrop.dropStopSwitchpin);    // check the switch
     } while (dropSwitchState == HIGH);
 
-    delay(CONST_DELAY); // Changed from 1500 -> 1000
+    delay(SpiderDrop.dropMotorDelay);                                   // Time for motor to get off position switch
     digitalWrite(SpiderDrop.dropMotorPin, HIGH);                        // Stop drop motor
 
     hangDelayStart = millis();                                          // Mark the beginning of the hang time
 
     SpiderDrop.spiderState = DROPPED;               
-    writeToFirebase();                                                  // Update Firebase about new state of the device
+    writeStateToFirebase();                                             // Update Firebase about new state of the device
 }
 
 void retractSpider()
@@ -176,7 +175,7 @@ void retractSpider()
     digitalWrite(SpiderDrop.retractMotorPin, LOW);                  // Pull the spider back up
 
     SpiderDrop.spiderState = RETRACTING;               
-    writeToFirebase();                                              // Update Firebase about new state of the device
+    writeStateToFirebase();                                              // Update Firebase about new state of the device
 
     delay(SpiderDrop.currentPulseDelay);                            // Allow time for initial current pulse
 }
@@ -186,7 +185,7 @@ void stopRetractingSpider()
     digitalWrite(SpiderDrop.retractMotorPin, HIGH);                 // Shut off motor
 
     SpiderDrop.spiderState = RETRACTED;               
-    writeToFirebase();                                              // Update Firebase about new state of the device
+    writeStateToFirebase();                                              // Update Firebase about new state of the device
 
     delay(SpiderDrop.currentPulseDelay);                            // Time for voltage spike to decay
 }
@@ -220,5 +219,4 @@ void handleNewData()
             #endif
         }
     }
-
 }

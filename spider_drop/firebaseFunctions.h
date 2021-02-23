@@ -55,6 +55,7 @@ static const String FIREBASE_AUTH = "dHKCDHppSOQcBKU5a49DgfOOzVoxXdJIB7PaJDa7";
 FirebaseData firebaseDataRECV;
 FirebaseData firebaseDataSEND;
 String DevicePath = "";
+String StatePath = "";
 bool newDataReceived = false;
 bool WiFiSetup = false;
 bool FirebaseSetup = false;

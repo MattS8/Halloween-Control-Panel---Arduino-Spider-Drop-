@@ -62,7 +62,8 @@ void setup()
 
     pinMode(SpiderDrop.pin, INPUT_PULLUP);
     pinMode(SpiderDrop.dropStopSwitchpin, INPUT_PULLUP);
-    pinMode(SpiderDrop.currentSensePin, INPUT_PULLUP); 
+    pinMode(SpiderDrop.currentSensePin, INPUT); 
+    pinMode(SpiderDrop.upLimitSwitchPin, INPUT_PULLUP);
 
     delay(SpiderDrop.currentPulseDelay);    // Get past startup current pulse
 
@@ -74,6 +75,7 @@ int dropDetectionState;
 int dropSwitchState;
 unsigned long hangDelayStart = 0;
 int currentVal = 0;
+long retractTimeout = 0;
 void loop()
 {
     if (!WiFiSetup)
@@ -121,6 +123,11 @@ void loop()
     *       - voltage drop > SpiderDrop.currentLimit
     */
 
+    if (millis() > retractTimeout) {
+        digitalWrite(SpiderDrop.retractMotorPin, HIGH); 
+        writeErrorToFirebase("RETRACT_MOTOR_TIMEOUT: Failed to trigger end of retraction. Timeout occur.");
+    }
+
     switch (SpiderDrop.spiderState)
     {
     case RETRACTED:
@@ -150,14 +157,22 @@ void loop()
     delay(5); 
 }
 
+#define DROP_MOTOR_TIMEOUT 10000
 void dropSpider()
 {
     digitalWrite(SpiderDrop.retractMotorPin, HIGH);                     // Make sure motor is off
     digitalWrite(SpiderDrop.dropMotorPin, LOW);                         // Drop the spider  
+    long dropTimeoutTime = millis() + DROP_MOTOR_TIMEOUT;
+
 
     do {
         delay(CONST_DELAY);
         dropSwitchState = digitalRead(SpiderDrop.dropStopSwitchpin);    // check the switch
+
+        if (millis() > dropTimeoutTime) {
+            writeErrorToFirebase("DROP_MOTOR_TIEMOUT: Drop Motor failed to release.");
+            break;
+        }
     } while (dropSwitchState == HIGH);
 
     delay(SpiderDrop.dropMotorDelay);                                   // Time for motor to get off position switch
@@ -175,7 +190,7 @@ void retractSpider()
     digitalWrite(SpiderDrop.retractMotorPin, LOW);                  // Pull the spider back up
 
     SpiderDrop.spiderState = RETRACTING;               
-    writeStateToFirebase();                                              // Update Firebase about new state of the device
+    writeStateToFirebase();                                         // Update Firebase about new state of the device
 
     delay(SpiderDrop.currentPulseDelay);                            // Allow time for initial current pulse
 }
@@ -184,8 +199,8 @@ void stopRetractingSpider()
 {
     digitalWrite(SpiderDrop.retractMotorPin, HIGH);                 // Shut off motor
 
-    SpiderDrop.spiderState = RETRACTED;               
-    writeStateToFirebase();                                              // Update Firebase about new state of the device
+    SpiderDrop.spiderState = RETRACTED;                             
+    writeStateToFirebase();                                         // Update Firebase about new state of the device
 
     delay(SpiderDrop.currentPulseDelay);                            // Time for voltage spike to decay
 }
@@ -208,6 +223,7 @@ void handleNewData()
             Serial.println("Received command to drop spider, however, however it's not ready to do so yet!");
             #endif
         }
+        writeCommandToFirebase();
     } else if (handledCommand == RETRACT) {
         // Handle Retract
         if (SpiderDrop.spiderState == DROPPED) {
@@ -218,5 +234,6 @@ void handleNewData()
             Serial.println("Received command to retract spider, however it's not ready to do so yet!");
             #endif
         }
+        writeCommandToFirebase();
     }
 }

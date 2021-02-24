@@ -56,6 +56,7 @@ FirebaseData firebaseDataRECV;
 FirebaseData firebaseDataSEND;
 String DevicePath = "";
 String StatePath = "";
+String ErrorPath = "";
 bool newDataReceived = false;
 bool WiFiSetup = false;
 bool FirebaseSetup = false;

@@ -37,6 +37,9 @@ void setupFirebaseFunctions() {
   sprintf(temp, "/state/%lu", ESP.getChipId());
   StatePath = String(temp);
 
+  sprintf(temp, "/error/%lu", ESP.getChipId());
+  ErrorPath = String(temp);
+
   delete[] temp;
 
 #ifdef SETUP_FF_DEBUG
@@ -228,6 +231,16 @@ void handleDataRecieved(StreamData data) {
     }
 }
 
+void writeCommandToFirebase() {
+  Firebase.setString(firebaseDataSEND, 
+    DevicePath + "/command",
+    SpiderDrop.command == DROP
+      ? "DROP"
+      : SpiderDrop.command == RETRACT
+        ? "RETRACT"
+        : "_none_");
+}
+
 void writeStateToFirebase() {
   Firebase.setString(firebaseDataSEND,
     StatePath,
@@ -236,6 +249,10 @@ void writeStateToFirebase() {
       : SpiderDrop.spiderState == RETRACTING 
         ? STATE_RETRACTING
         : STATE_RETRACTED);
+}
+
+void writeErrorToFirebase(String errorString) {
+  Firebase.setString(firebaseDataSEND, ErrorPath, errorString);
 }
 
 void writeToFirebase() {

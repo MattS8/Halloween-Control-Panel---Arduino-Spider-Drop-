@@ -124,9 +124,10 @@ void loop()
     */
 
     if (SpiderDrop.spiderState == RETRACTING && millis() > retractTimeout) {
-        digitalWrite(SpiderDrop.retractMotorPin, HIGH); 
+        stopRetractingSpider();
         writeErrorToFirebase("RETRACT_MOTOR_TIMEOUT: Failed to trigger end of retraction. Timeout occur.");
         retractTimeout = 0;
+
     }
 
     switch (SpiderDrop.spiderState)
@@ -171,8 +172,9 @@ void dropSpider()
         dropSwitchState = digitalRead(SpiderDrop.dropStopSwitchpin);    // check the switch
 
         if (millis() > dropTimeoutTime) {
+            digitalWrite(SpiderDrop.dropMotorPin, HIGH);  
             writeErrorToFirebase("DROP_MOTOR_TIEMOUT: Drop Motor failed to release.");
-            break;
+            return;
         }
     } while (dropSwitchState == HIGH);
 

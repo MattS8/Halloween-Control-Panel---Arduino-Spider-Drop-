@@ -123,9 +123,10 @@ void loop()
     *       - voltage drop > SpiderDrop.currentLimit
     */
 
-    if (millis() > retractTimeout) {
+    if (SpiderDrop.spiderState == RETRACTING && millis() > retractTimeout) {
         digitalWrite(SpiderDrop.retractMotorPin, HIGH); 
         writeErrorToFirebase("RETRACT_MOTOR_TIMEOUT: Failed to trigger end of retraction. Timeout occur.");
+        retractTimeout = 0;
     }
 
     switch (SpiderDrop.spiderState)
@@ -184,8 +185,10 @@ void dropSpider()
     writeStateToFirebase();                                             // Update Firebase about new state of the device
 }
 
+#define RETRACT_MOTOR_TIMEOUT 20000
 void retractSpider()
 {
+    retractTimeout = millis() + RETRACT_MOTOR_TIMEOUT;
     // Hang time delay is over            
     digitalWrite(SpiderDrop.retractMotorPin, LOW);                  // Pull the spider back up
 
